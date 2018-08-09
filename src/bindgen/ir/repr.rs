@@ -53,17 +53,25 @@ impl Repr {
                 {
                     if path.is_ident("repr") {
                         return Some(nested.into_iter().collect::<Vec<_>>());
-                    } else if ident == "cfg_attr" {
+                    } else if path.is_ident("cfg_attr") {
                         // e.g.: #[cfg_attr(feature = "cffi", repr(C))]
                         // TODO: interpret firts part like `feature = "cffi"` and check out cfg
-                        let v = nested.into_iter().filter_map(|attr| {
-                            if let syn::NestedMeta::Meta(syn::Meta::List(syn::MetaList { ident, nested, .. })) = attr {
-                                if ident == "repr" {
-                                    return Some(nested.into_iter().collect::<Vec<_>>());
+                        let v = nested
+                            .into_iter()
+                            .filter_map(|attr| {
+                                if let syn::NestedMeta::Meta(syn::Meta::List(syn::MetaList {
+                                    path,
+                                    nested,
+                                    ..
+                                })) = attr
+                                {
+                                    if path.is_ident("repr") {
+                                        return Some(nested.into_iter().collect::<Vec<_>>());
+                                    }
                                 }
-                            }
-                            None
-                        }).flat_map(|i| i).collect::<Vec<_>>();
+                                None
+                            }).flat_map(|i| i)
+                            .collect::<Vec<_>>();
                         if !v.is_empty() {
                             return Some(v);
                         }
